@@ -20,6 +20,13 @@ class RegistrationServiceImplTest {
     }
 
     @Test
+    void registerUserNull_notOk() {
+        assertThrows(IncorrectDataForRegistrationException.class, () -> {
+            service.register(null);
+        });
+    }
+
+    @Test
     void register_nullLogin_notOk() {
         user.setLogin(null);
         assertThrows(IncorrectDataForRegistrationException.class, () -> service.register(user));
@@ -38,13 +45,6 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void registerUserNull_notOk() {
-        assertThrows(IncorrectDataForRegistrationException.class, () -> {
-            service.register(null);
-        });
-    }
-
-    @Test
     void registerValidUser_ok() {
         User result = service.register(user);
         assertNotNull(result);
@@ -59,8 +59,16 @@ class RegistrationServiceImplTest {
     }
 
     @Test
+    void register_loginLengthFive_notOk() {
+        user.setLogin("12345");
+        assertThrows(IncorrectDataForRegistrationException.class, () -> {
+            service.register(user);
+        });
+    }
+
+    @Test
     void register_loginLengthSix_ok() {
-        user.setLogin("nwuser");
+        user.setLogin("123456");
         User registeredUser = service.register(user);
         assertNotNull(registeredUser);
     }
@@ -74,8 +82,16 @@ class RegistrationServiceImplTest {
     }
 
     @Test
+    void register_passwordLengthFive_notOk() {
+        user.setPassword("12345");
+        assertThrows(IncorrectDataForRegistrationException.class, () -> {
+            service.register(user);
+        });
+    }
+
+    @Test
     void register_passwordLengthSix_ok() {
-        user.setPassword("psword");
+        user.setPassword("123456");
         User registeredUser = service.register(user);
         assertNotNull(registeredUser);
     }
