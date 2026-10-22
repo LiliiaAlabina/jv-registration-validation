@@ -1,8 +1,10 @@
 package core.basesyntax.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import core.basesyntax.db.Storage;
 import core.basesyntax.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +15,26 @@ class RegistrationServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        Storage.people.clear();
         user = new User("newuser", "password", 20);
+    }
+
+    @Test
+    void register_nullLogin_notOk() {
+        user.setLogin(null);
+        assertThrows(IncorrectDataForRegistrationException.class, () -> service.register(user));
+    }
+
+    @Test
+    void register_nullPassword_notOk() {
+        user.setPassword(null);
+        assertThrows(IncorrectDataForRegistrationException.class, () -> service.register(user));
+    }
+
+    @Test
+    void register_nullAge_notOk() {
+        user.setAge(null);
+        assertThrows(IncorrectDataForRegistrationException.class, () -> service.register(user));
     }
 
     @Test
@@ -38,11 +59,31 @@ class RegistrationServiceImplTest {
     }
 
     @Test
+    void register_loginLengthSix_ok() {
+        user.setLogin("nwuser");
+        User registeredUser = service.register(user);
+        assertNotNull(registeredUser);
+    }
+
+    @Test
     void registerPasswordTooShort_notOk() {
         user.setPassword("word");
         assertThrows(IncorrectDataForRegistrationException.class, () -> {
             service.register(user);
         });
+    }
+
+    @Test
+    void register_passwordLengthSix_ok() {
+        user.setPassword("psword");
+        User registeredUser = service.register(user);
+        assertNotNull(registeredUser);
+    }
+
+    @Test
+    void register_passwordEmpty_notOk() {
+        user.setPassword("");
+        assertThrows(IncorrectDataForRegistrationException.class, () -> service.register(user));
     }
 
     @Test
@@ -54,10 +95,33 @@ class RegistrationServiceImplTest {
     }
 
     @Test
+    void register_ageEighteen_ok() {
+        user.setAge(18);
+        User registeredUser = service.register(user);
+        assertNotNull(registeredUser);
+    }
+
+    @Test
+    void register_negativeAge_notOk() {
+        user.setAge(-1);
+        assertThrows(IncorrectDataForRegistrationException.class, () -> service.register(user));
+    }
+
+    @Test
     void register_existingLogin_notOk() {
-        User secondUser = new User("newuser", "anotherPassword", 25);
-        assertThrows(IncorrectDataForRegistrationException.class, () -> {
-            service.register(secondUser);
-        });
+        Storage.people.add(user);
+        User duplicateUser = new User();
+        duplicateUser.setLogin("newuser");
+        duplicateUser.setPassword("anotherPassword");
+        duplicateUser.setAge(25);
+        assertThrows(IncorrectDataForRegistrationException.class,
+                () -> service.register(duplicateUser));
+    }
+
+    @Test
+    void register_verifyAddedToStorage_ok() {
+        service.register(user);
+        assertEquals(1, Storage.people.size());
+        assertEquals(user, Storage.people.get(0));
     }
 }
